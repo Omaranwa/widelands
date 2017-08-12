@@ -61,7 +61,13 @@ public:
 		assert(is_buildable());
 		return buildcost_;
 	}
+
+	/// Some workers need to be added to the buildcost in postload, because the other worker might not have been loaded into the engine yet.
+	/// 'name' is the descr().name() of the other worker, 'quantity' is the amount of that woker type needed.
 	void add_worker_to_buildcost(const std::string& name, uint8_t quantity);
+
+	/// Sets the descr().name() of the worker that this worker will enhance to, given enough experience.
+	/// 'needed_experience_' needs to be set first.
 	void set_becomes(const std::string& name);
 
 	/// How much of the worker type that an economy should store in warehouses.

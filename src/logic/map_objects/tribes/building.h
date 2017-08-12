@@ -80,6 +80,7 @@ public:
 		return enhanced_building_;
 	}
 
+	/// Define a building that this building can be enhanced to. 'name' is the descr().name() of the other building.
 	void set_enhances_to(const std::string& name);
 
 	/**

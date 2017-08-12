@@ -92,6 +92,7 @@ WorkerDescr::WorkerDescr(const std::string& init_descname,
 
 	// Read what the worker can become and the needed experience
 	if (table.has_key("becomes")) {
+		needed_experience_ = table.get_int("experience");
 		const std::string becomes = table.get_string("becomes");
 		if (egbase_.tribes().worker_exists(becomes)) {
 			set_becomes(becomes);
@@ -99,7 +100,6 @@ WorkerDescr::WorkerDescr(const std::string& init_descname,
 			// The expert worker wasn't loaded yet, so we'll try this again in postload.
 			egbase->mutable_tribes()->add_mapobject_enhancement({MapObjectType::WORKER, name(), becomes});
 		}
-		needed_experience_ = table.get_int("experience");
 	}
 
 	// Read programs
@@ -141,6 +141,7 @@ void WorkerDescr::add_worker_to_buildcost(const std::string& name, uint8_t quant
 }
 
 void WorkerDescr::set_becomes(const std::string& name) {
+	assert(needed_experience_ > 0 && needed_experience_ != INVALID_INDEX);
 	becomes_ = egbase_.tribes().safe_worker_index(name);
 }
 

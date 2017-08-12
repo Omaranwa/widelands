@@ -11,12 +11,10 @@
 --
 -- Basic load order (first wares, then immovables etc.) is important,
 -- because checks will be made in C++.
--- Also, enhanced/upgraded units need to come before their basic units.
 --
 
 tribes = wl.Tribes()
 include "scripting/mapobjects.lua"
-
 
 -- Load all init.lua files in the given table of directory names
 function load_directories(directories)

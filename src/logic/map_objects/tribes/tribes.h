@@ -149,7 +149,7 @@ public:
 	/// Complete the Description objects' information with data from other Description objects.
 	void postload();
 
-	/// Structs and functions for postload
+	/// Some workers have other workers as part of their buildcost. If the other worker hasn't been loaded yet, it will need to be added during postload.
 	struct WorkerBuildcost {
 		const std::string worker;
 		const std::string needed_worker;
@@ -157,6 +157,7 @@ public:
 	};
 	void add_worker_buildcost(const WorkerBuildcost& buildcost);
 
+	/// Enhanced buildings/workers might not have been loaded yet when a more basic type is being loaded, so we will need to add some of them during postload.
 	struct MapObjectEnhancement {
 		const MapObjectType type; // Worker or building
 		const std::string name;
@@ -172,7 +173,9 @@ private:
 	std::unique_ptr<DescriptionMaintainer<WorkerDescr>> workers_;
 	std::unique_ptr<DescriptionMaintainer<TribeDescr>> tribes_;
 
+	/// Worker buildcost records to be added in postload. This container will be empty after postload.
 	std::vector<WorkerBuildcost> postload_workers_buildcost_;
+	/// Worker/Building enhancement records to be added in postload. This container will be empty after postload.
 	std::vector<MapObjectEnhancement> postload_mapobject_enhancements_;
 
 	DISALLOW_COPY_AND_ASSIGN(Tribes);
