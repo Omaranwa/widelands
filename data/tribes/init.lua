@@ -17,6 +17,33 @@
 tribes = wl.Tribes()
 include "scripting/mapobjects.lua"
 
+-- Helper function to check for file name endings
+function string.ends(haystack, needle)
+   return needle == '' or string.sub(haystack, -string.len(needle)) == needle
+end
+
+-- Load all init.lua files in the given table of directory names
+function load_directories(directories)
+   -- NOCOM remove print output when everything works
+   print("┃    LOADING: " .. directories[1])
+   while #directories > 0 do
+      local filepath = directories[1]
+      table.remove(directories, 1)
+      if path.is_directory(filepath) then
+         local temp_dirs = path.list_directory(filepath)
+         for idx, temp_path in ipairs(temp_dirs) do
+            if path.is_directory(temp_path) then
+               print("┃      Directory: " .. temp_path)
+               table.insert(directories, temp_path)
+            elseif string.ends(temp_path , "init.lua") then
+               print("┃      File: " .. temp_path)
+               include(temp_path)
+            end
+         end
+      end
+   end
+end
+
 print("┏━ Running Lua for tribes:")
 
 print_loading_message("┗━ took", function()
@@ -25,9 +52,7 @@ print_loading_message("┗━ took", function()
    -- ===================================
 
    print_loading_message("┃    Ships", function()
-      include "tribes/ships/atlanteans/init.lua"
-      include "tribes/ships/barbarians/init.lua"
-      include "tribes/ships/empire/init.lua"
+      load_directories({"tribes/ships"})
    end)
 
    -- ===================================
