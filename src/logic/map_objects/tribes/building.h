@@ -66,7 +66,7 @@ public:
 	BuildingDescr(const std::string& init_descname,
 	              MapObjectType type,
 	              const LuaTable& t,
-	              const EditorGameBase& egbase);
+	              EditorGameBase* egbase);
 	~BuildingDescr() override {
 	}
 
@@ -79,6 +79,8 @@ public:
 	bool is_enhanced() const {
 		return enhanced_building_;
 	}
+
+	void set_enhances_to(const std::string& name);
 
 	/**
 	 * The build cost for direct construction

@@ -65,22 +65,22 @@ public:
 	}
 
 	/// Adds this building type to the tribe description.
-	void add_constructionsite_type(const LuaTable& table, const EditorGameBase& egbase);
+	void add_constructionsite_type(const LuaTable& table, EditorGameBase* egbase);
 
 	/// Adds this building type to the tribe description.
-	void add_dismantlesite_type(const LuaTable& table, const EditorGameBase& egbase);
+	void add_dismantlesite_type(const LuaTable& table, EditorGameBase* egbase);
 
 	/// Adds this building type to the tribe description.
-	void add_militarysite_type(const LuaTable& table, const EditorGameBase& egbase);
+	void add_militarysite_type(const LuaTable& table, EditorGameBase* egbase);
 
 	/// Adds this building type to the tribe description.
-	void add_productionsite_type(const LuaTable& table, const EditorGameBase& egbase);
+	void add_productionsite_type(const LuaTable& table, EditorGameBase* egbase);
 
 	/// Adds this building type to the tribe description.
-	void add_trainingsite_type(const LuaTable& table, const EditorGameBase& egbase);
+	void add_trainingsite_type(const LuaTable& table, EditorGameBase* egbase);
 
 	/// Adds this building type to the tribe description.
-	void add_warehouse_type(const LuaTable& table, const EditorGameBase& egbase);
+	void add_warehouse_type(const LuaTable& table, EditorGameBase* egbase);
 
 	/// Adds this immovable type to the tribe description.
 	void add_immovable_type(const LuaTable& table);
@@ -157,11 +157,12 @@ public:
 	};
 	void add_worker_buildcost(const WorkerBuildcost& buildcost);
 
-	struct WorkerBecomes {
-		const std::string worker;
-		const std::string expert_worker;
+	struct MapObjectEnhancement {
+		const MapObjectType type; // Worker or building
+		const std::string name;
+		const std::string enhanced_name;
 	};
-	void add_worker_becomes(const WorkerBecomes& becomes);
+	void add_mapobject_enhancement(const MapObjectEnhancement& becomes);
 
 private:
 	std::unique_ptr<DescriptionMaintainer<BuildingDescr>> buildings_;
@@ -172,7 +173,7 @@ private:
 	std::unique_ptr<DescriptionMaintainer<TribeDescr>> tribes_;
 
 	std::vector<WorkerBuildcost> postload_workers_buildcost_;
-	std::vector<WorkerBecomes> postload_workers_become_;
+	std::vector<MapObjectEnhancement> postload_mapobject_enhancements_;
 
 	DISALLOW_COPY_AND_ASSIGN(Tribes);
 };

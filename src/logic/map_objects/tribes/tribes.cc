@@ -78,28 +78,28 @@ Tribes::Tribes()
      tribes_(new DescriptionMaintainer<TribeDescr>()) {
 }
 
-void Tribes::add_constructionsite_type(const LuaTable& table, const EditorGameBase& egbase) {
+void Tribes::add_constructionsite_type(const LuaTable& table, EditorGameBase* egbase) {
 	i18n::Textdomain td("tribes");
 	buildings_->add(new ConstructionSiteDescr(
 	   pgettext_expr(table.get_string("msgctxt").c_str(), table.get_string("descname").c_str()),
 	   table, egbase));
 }
 
-void Tribes::add_dismantlesite_type(const LuaTable& table, const EditorGameBase& egbase) {
+void Tribes::add_dismantlesite_type(const LuaTable& table, EditorGameBase* egbase) {
 	i18n::Textdomain td("tribes");
 	buildings_->add(new DismantleSiteDescr(
 	   pgettext_expr(table.get_string("msgctxt").c_str(), table.get_string("descname").c_str()),
 	   table, egbase));
 }
 
-void Tribes::add_militarysite_type(const LuaTable& table, const EditorGameBase& egbase) {
+void Tribes::add_militarysite_type(const LuaTable& table, EditorGameBase* egbase) {
 	i18n::Textdomain td("tribes");
 	buildings_->add(new MilitarySiteDescr(
 	   pgettext_expr(table.get_string("msgctxt").c_str(), table.get_string("descname").c_str()),
 	   table, egbase));
 }
 
-void Tribes::add_productionsite_type(const LuaTable& table, const EditorGameBase& egbase) {
+void Tribes::add_productionsite_type(const LuaTable& table, EditorGameBase* egbase) {
 	i18n::Textdomain td("tribes");
 	const std::string msgctxt = table.get_string("msgctxt");
 	buildings_->add(
@@ -107,14 +107,14 @@ void Tribes::add_productionsite_type(const LuaTable& table, const EditorGameBase
 	                           msgctxt, table, egbase));
 }
 
-void Tribes::add_trainingsite_type(const LuaTable& table, const EditorGameBase& egbase) {
+void Tribes::add_trainingsite_type(const LuaTable& table, EditorGameBase* egbase) {
 	i18n::Textdomain td("tribes");
 	buildings_->add(new TrainingSiteDescr(
 	   pgettext_expr(table.get_string("msgctxt").c_str(), table.get_string("descname").c_str()),
 	   table, egbase));
 }
 
-void Tribes::add_warehouse_type(const LuaTable& table, const EditorGameBase& egbase) {
+void Tribes::add_warehouse_type(const LuaTable& table, EditorGameBase* egbase) {
 	i18n::Textdomain td("tribes");
 	buildings_->add(new WarehouseDescr(
 	   pgettext_expr(table.get_string("msgctxt").c_str(), table.get_string("descname").c_str()),
@@ -336,8 +336,8 @@ void Tribes::add_worker_buildcost(const WorkerBuildcost& buildcost) {
 	postload_workers_buildcost_.push_back(buildcost);
 }
 
-void Tribes::add_worker_becomes(const WorkerBecomes& becomes) {
-	postload_workers_become_.push_back(becomes);
+void Tribes::add_mapobject_enhancement(const MapObjectEnhancement& becomes) {
+	postload_mapobject_enhancements_.push_back(becomes);
 }
 
 void Tribes::postload() {
@@ -355,19 +355,36 @@ void Tribes::postload() {
 	}
 	postload_workers_buildcost_.clear();
 
-	// Likewise, more experienced workers might not have been available yet when a lower-level worker was loaded.
-	for (const WorkerBecomes& becomes : postload_workers_become_) {
-		if (!worker_exists(becomes.worker)) {
-			throw GameDataError(
-			   "Trying to add a worker enhancement to non-existing worker '%s'", becomes.worker.c_str());
+	// Likewise, more experienced workers and advanced buildings might not have been available yet when a lower-level worker or building was loaded.
+	for (const MapObjectEnhancement& enhancement : postload_mapobject_enhancements_) {
+		switch (enhancement.type) {
+		case MapObjectType::BUILDING:
+			if (!building_exists(enhancement.name)) {
+				throw GameDataError(
+				   "Trying to add a building enhancement to non-existing building '%s'", enhancement.name.c_str());
+			}
+			if (!building_exists(enhancement.enhanced_name)) {
+				throw GameDataError(
+				   "The building '%s' to be added as enhancement to the building '%s' does not exist", enhancement.enhanced_name.c_str(), enhancement.name.c_str());
+			}
+			buildings_->get_mutable(safe_building_index(enhancement.name))->set_enhances_to(enhancement.enhanced_name);
+			break;
+		case MapObjectType::WORKER:
+			if (!worker_exists(enhancement.name)) {
+				throw GameDataError(
+				   "Trying to add a worker enhancement to non-existing worker '%s'", enhancement.name.c_str());
+			}
+			if (!worker_exists(enhancement.enhanced_name)) {
+				throw GameDataError(
+				   "The worker '%s' to be added as enhancement to the worker '%s' does not exist", enhancement.enhanced_name.c_str(), enhancement.name.c_str());
+			}
+			workers_->get_mutable(safe_worker_index(enhancement.name))->set_becomes(enhancement.enhanced_name);
+			break;
+		default:
+			NEVER_HERE();
 		}
-		if (!worker_exists(becomes.expert_worker)) {
-			throw GameDataError(
-			   "The worker '%s' to be added as enhancement to the worker '%s' does not exist", becomes.expert_worker.c_str(), becomes.worker.c_str());
-		}
-		workers_->get_mutable(safe_worker_index(becomes.worker))->set_becomes(becomes.expert_worker);
 	}
-	postload_workers_become_.clear();
+	postload_mapobject_enhancements_.clear();
 
 	// Add building info to wares here, since wares were loaded first.
 	for (DescriptionIndex i = 0; i < buildings_->size(); ++i) {

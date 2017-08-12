@@ -97,7 +97,7 @@ WorkerDescr::WorkerDescr(const std::string& init_descname,
 			set_becomes(becomes);
 		} else {
 			// The expert worker wasn't loaded yet, so we'll try this again in postload.
-			egbase->mutable_tribes()->add_worker_becomes({name(), becomes});
+			egbase->mutable_tribes()->add_mapobject_enhancement({MapObjectType::WORKER, name(), becomes});
 		}
 		needed_experience_ = table.get_int("experience");
 	}

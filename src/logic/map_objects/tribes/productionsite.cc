@@ -63,7 +63,7 @@ ProductionSiteDescr::ProductionSiteDescr(const std::string& init_descname,
                                          const std::string& msgctxt,
                                          MapObjectType init_type,
                                          const LuaTable& table,
-                                         const EditorGameBase& egbase)
+                                         EditorGameBase* egbase)
    : BuildingDescr(init_descname, init_type, table, egbase),
      out_of_resource_title_(""),
      out_of_resource_heading_(""),
@@ -90,15 +90,15 @@ ProductionSiteDescr::ProductionSiteDescr(const std::string& init_descname,
 	if (table.has_key("outputs")) {
 		for (const std::string& output : table.get_table("outputs")->array_entries<std::string>()) {
 			try {
-				DescriptionIndex idx = egbase.tribes().ware_index(output);
-				if (egbase.tribes().ware_exists(idx)) {
+				DescriptionIndex idx = egbase->tribes().ware_index(output);
+				if (egbase->tribes().ware_exists(idx)) {
 					if (output_ware_types_.count(idx)) {
 						throw wexception("this ware type has already been declared as an output");
 					}
 					output_ware_types_.insert(idx);
 				} else {
-					idx = egbase.tribes().worker_index(output);
-					if (egbase.tribes().worker_exists(idx)) {
+					idx = egbase->tribes().worker_index(output);
+					if (egbase->tribes().worker_exists(idx)) {
 						if (output_worker_types_.count(idx)) {
 							throw wexception("this worker type has already been declared as an output");
 						}
@@ -123,8 +123,8 @@ ProductionSiteDescr::ProductionSiteDescr(const std::string& init_descname,
 				if (amount < 1 || 255 < amount) {
 					throw wexception("amount is out of range 1 .. 255");
 				}
-				DescriptionIndex idx = egbase.tribes().ware_index(ware_name);
-				if (egbase.tribes().ware_exists(idx)) {
+				DescriptionIndex idx = egbase->tribes().ware_index(ware_name);
+				if (egbase->tribes().ware_exists(idx)) {
 					for (const auto& temp_inputs : input_wares()) {
 						if (temp_inputs.first == idx) {
 							throw wexception("duplicated");
@@ -132,8 +132,8 @@ ProductionSiteDescr::ProductionSiteDescr(const std::string& init_descname,
 					}
 					input_wares_.push_back(WareAmount(idx, amount));
 				} else {
-					idx = egbase.tribes().worker_index(ware_name);
-					if (egbase.tribes().worker_exists(idx)) {
+					idx = egbase->tribes().worker_index(ware_name);
+					if (egbase->tribes().worker_exists(idx)) {
 						for (const auto& temp_inputs : input_workers()) {
 							if (temp_inputs.first == idx) {
 								throw wexception("duplicated");
@@ -157,8 +157,8 @@ ProductionSiteDescr::ProductionSiteDescr(const std::string& init_descname,
 			if (amount < 1 || 255 < amount) {
 				throw wexception("count is out of range 1 .. 255");
 			}
-			DescriptionIndex const woi = egbase.tribes().worker_index(worker_name);
-			if (egbase.tribes().worker_exists(woi)) {
+			DescriptionIndex const woi = egbase->tribes().worker_index(worker_name);
+			if (egbase->tribes().worker_exists(woi)) {
 				for (const auto& wp : working_positions()) {
 					if (wp.first == woi) {
 						throw wexception("duplicated");
@@ -191,7 +191,7 @@ ProductionSiteDescr::ProductionSiteDescr(const std::string& init_descname,
 				program_descname = pgettext_expr(msgctxt.c_str(), program_descname_unlocalized.c_str());
 			}
 			programs_[program_name] = std::unique_ptr<ProductionProgram>(new ProductionProgram(
-			   program_name, program_descname, program_table->get_table("actions"), egbase, this));
+			   program_name, program_descname, program_table->get_table("actions"), *egbase, this));
 		} catch (const std::exception& e) {
 			throw wexception("program %s: %s", program_name.c_str(), e.what());
 		}
@@ -201,7 +201,7 @@ ProductionSiteDescr::ProductionSiteDescr(const std::string& init_descname,
 ProductionSiteDescr::ProductionSiteDescr(const std::string& init_descname,
                                          const std::string& msgctxt,
                                          const LuaTable& table,
-                                         const EditorGameBase& egbase)
+                                         EditorGameBase* egbase)
    : ProductionSiteDescr(init_descname, msgctxt, MapObjectType::PRODUCTIONSITE, table, egbase) {
 }
 

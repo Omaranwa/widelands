@@ -57,9 +57,9 @@ static const int32_t BUILDING_LEAVE_INTERVAL = 1000;
 BuildingDescr::BuildingDescr(const std::string& init_descname,
                              const MapObjectType init_type,
                              const LuaTable& table,
-                             const EditorGameBase& egbase)
+                             EditorGameBase* egbase)
    : MapObjectDescr(init_type, table.get_string("name"), init_descname, table),
-     egbase_(egbase),
+     egbase_(*egbase),
      buildable_(false),
      size_(BaseImmovable::SMALL),
      mine_(false),
@@ -112,22 +112,11 @@ BuildingDescr::BuildingDescr(const std::string& init_descname,
 		if (enh == name()) {
 			throw wexception("enhancement to same type");
 		}
-		DescriptionIndex const en_i = egbase_.tribes().building_index(enh);
-		if (egbase_.tribes().building_exists(en_i)) {
-			enhancement_ = en_i;
-
-			//  Merge the enhancements workarea info into this building's
-			//  workarea info.
-			const BuildingDescr* tmp_enhancement = egbase_.tribes().get_building_descr(en_i);
-			for (auto area : tmp_enhancement->workarea_info_) {
-				std::set<std::string>& strs = workarea_info_[area.first];
-				for (std::string str : area.second)
-					strs.insert(str);
-			}
+		if (egbase_.tribes().building_exists(enh)) {
+			set_enhances_to(enh);
 		} else {
-			throw wexception(
-			   "\"%s\" has not been defined as a building type (wrong declaration order?)",
-			   enh.c_str());
+			// The advanced building wasn't loaded yet, so we'll try this again in postload.
+			egbase->mutable_tribes()->add_mapobject_enhancement({MapObjectType::BUILDING, name(), enh});
 		}
 	}
 
@@ -161,6 +150,18 @@ BuildingDescr::BuildingDescr(const std::string& init_descname,
 
 	if (table.has_key("vision_range")) {
 		vision_range_ = table.get_int("vision_range");
+	}
+}
+
+void BuildingDescr::set_enhances_to(const std::string& name) {
+	enhancement_ = egbase_.tribes().safe_building_index(name);
+
+	//  Merge the enhancements workarea info into this building's
+	//  workarea info.
+	for (auto area : egbase_.tribes().get_building_descr(enhancement_)->workarea_info_) {
+		std::set<std::string>& strs = workarea_info_[area.first];
+		for (std::string str : area.second)
+			strs.insert(str);
 	}
 }
 
