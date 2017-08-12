@@ -568,7 +568,7 @@ void Carrier::draw_inner(const EditorGameBase& game,
 
 CarrierDescr::CarrierDescr(const std::string& init_descname,
                            const LuaTable& table,
-                           const EditorGameBase& egbase)
+                           EditorGameBase* egbase)
    : WorkerDescr(init_descname, MapObjectType::CARRIER, table, egbase),
      ware_hotspot_(Vector2i(0, 15)) {
 	if (table.has_key("ware_hotspot")) {

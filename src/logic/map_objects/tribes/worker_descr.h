@@ -43,13 +43,13 @@ class WorkerDescr : public BobDescr {
 	friend struct WorkerProgram;
 
 public:
-	using Buildcost = std::map<std::string, Quantity>;
+	using Buildcost = std::map<std::string, uint8_t>;
 
 	WorkerDescr(const std::string& init_descname,
 	            MapObjectType type,
 	            const LuaTable& table,
-	            const EditorGameBase& egbase);
-	WorkerDescr(const std::string& init_descname, const LuaTable& t, const EditorGameBase& egbase);
+	            EditorGameBase* egbase);
+	WorkerDescr(const std::string& init_descname, const LuaTable& t, EditorGameBase* egbase);
 	~WorkerDescr() override;
 
 	Bob& create_object() const override;
@@ -61,6 +61,8 @@ public:
 		assert(is_buildable());
 		return buildcost_;
 	}
+	void add_worker_to_buildcost(const std::string& name, uint8_t quantity);
+	void set_becomes(const std::string& name);
 
 	/// How much of the worker type that an economy should store in warehouses.
 	/// The special value std::numeric_limits<uint32_t>::max() means that the

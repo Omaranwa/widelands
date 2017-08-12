@@ -818,8 +818,8 @@ int LuaTribes::new_carrier_type(lua_State* L) {
 
 	try {
 		LuaTable table(L);  // Will pop the table eventually.
-		EditorGameBase& egbase = get_egbase(L);
-		egbase.mutable_tribes()->add_carrier_type(table, egbase);
+		EditorGameBase* egbase = &get_egbase(L);
+		egbase->mutable_tribes()->add_carrier_type(table, egbase);
 	} catch (std::exception& e) {
 		report_error(L, "%s", e.what());
 	}
@@ -841,8 +841,8 @@ int LuaTribes::new_soldier_type(lua_State* L) {
 
 	try {
 		LuaTable table(L);  // Will pop the table eventually.
-		EditorGameBase& egbase = get_egbase(L);
-		egbase.mutable_tribes()->add_soldier_type(table, egbase);
+		EditorGameBase* egbase = &get_egbase(L);
+		egbase->mutable_tribes()->add_soldier_type(table, egbase);
 	} catch (std::exception& e) {
 		report_error(L, "%s", e.what());
 	}
@@ -864,8 +864,8 @@ int LuaTribes::new_worker_type(lua_State* L) {
 
 	try {
 		LuaTable table(L);  // Will pop the table eventually.
-		EditorGameBase& egbase = get_egbase(L);
-		egbase.mutable_tribes()->add_worker_type(table, egbase);
+		EditorGameBase* egbase = &get_egbase(L);
+		egbase->mutable_tribes()->add_worker_type(table, egbase);
 	} catch (std::exception& e) {
 		report_error(L, "%s", e.what());
 	}

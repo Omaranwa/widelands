@@ -92,13 +92,13 @@ public:
 	void add_ware_type(const LuaTable& table);
 
 	/// Adds this worker type to the tribe description.
-	void add_carrier_type(const LuaTable& table, const EditorGameBase& egbase);
+	void add_carrier_type(const LuaTable& table, EditorGameBase* egbase);
 
 	/// Adds this worker type to the tribe description.
-	void add_soldier_type(const LuaTable& table, const EditorGameBase& egbase);
+	void add_soldier_type(const LuaTable& table, EditorGameBase* egbase);
 
 	/// Adds this worker type to the tribe description.
-	void add_worker_type(const LuaTable& table, const EditorGameBase& egbase);
+	void add_worker_type(const LuaTable& table, EditorGameBase* egbase);
 
 	/// Adds a specific tribe's configuration.
 	void add_tribe(const LuaTable& table, const EditorGameBase& egbase);
@@ -109,6 +109,7 @@ public:
 	size_t nrworkers() const;
 
 	bool ware_exists(const DescriptionIndex& index) const;
+	bool worker_exists(const std::string& workername) const;
 	bool worker_exists(const DescriptionIndex& index) const;
 	bool building_exists(const std::string& buildingname) const;
 	bool building_exists(const DescriptionIndex& index) const;
@@ -148,6 +149,20 @@ public:
 	/// Complete the Description objects' information with data from other Description objects.
 	void postload();
 
+	/// Structs and functions for postload
+	struct WorkerBuildcost {
+		const std::string worker;
+		const std::string needed_worker;
+		const Quantity quantity;
+	};
+	void add_worker_buildcost(const WorkerBuildcost& buildcost);
+
+	struct WorkerBecomes {
+		const std::string worker;
+		const std::string expert_worker;
+	};
+	void add_worker_becomes(const WorkerBecomes& becomes);
+
 private:
 	std::unique_ptr<DescriptionMaintainer<BuildingDescr>> buildings_;
 	std::unique_ptr<DescriptionMaintainer<ImmovableDescr>> immovables_;
@@ -155,6 +170,9 @@ private:
 	std::unique_ptr<DescriptionMaintainer<WareDescr>> wares_;
 	std::unique_ptr<DescriptionMaintainer<WorkerDescr>> workers_;
 	std::unique_ptr<DescriptionMaintainer<TribeDescr>> tribes_;
+
+	std::vector<WorkerBuildcost> postload_workers_buildcost_;
+	std::vector<WorkerBecomes> postload_workers_become_;
 
 	DISALLOW_COPY_AND_ASSIGN(Tribes);
 };

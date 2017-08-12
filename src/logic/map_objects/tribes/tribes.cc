@@ -140,21 +140,21 @@ void Tribes::add_ware_type(const LuaTable& table) {
 	   table));
 }
 
-void Tribes::add_carrier_type(const LuaTable& table, const EditorGameBase& egbase) {
+void Tribes::add_carrier_type(const LuaTable& table, EditorGameBase* egbase) {
 	i18n::Textdomain td("tribes");
 	workers_->add(new CarrierDescr(
 	   pgettext_expr(table.get_string("msgctxt").c_str(), table.get_string("descname").c_str()),
 	   table, egbase));
 }
 
-void Tribes::add_soldier_type(const LuaTable& table, const EditorGameBase& egbase) {
+void Tribes::add_soldier_type(const LuaTable& table, EditorGameBase* egbase) {
 	i18n::Textdomain td("tribes");
 	workers_->add(new SoldierDescr(
 	   pgettext_expr(table.get_string("msgctxt").c_str(), table.get_string("descname").c_str()),
 	   table, egbase));
 }
 
-void Tribes::add_worker_type(const LuaTable& table, const EditorGameBase& egbase) {
+void Tribes::add_worker_type(const LuaTable& table, EditorGameBase* egbase) {
 	i18n::Textdomain td("tribes");
 	workers_->add(new WorkerDescr(
 	   pgettext_expr(table.get_string("msgctxt").c_str(), table.get_string("descname").c_str()),
@@ -188,6 +188,9 @@ size_t Tribes::nrworkers() const {
 
 bool Tribes::ware_exists(const DescriptionIndex& index) const {
 	return wares_->get_mutable(index) != nullptr;
+}
+bool Tribes::worker_exists(const std::string& workername) const {
+	return workers_->exists(workername) != nullptr;
 }
 bool Tribes::worker_exists(const DescriptionIndex& index) const {
 	return workers_->get_mutable(index) != nullptr;
@@ -329,7 +332,44 @@ void Tribes::load_graphics() {
 	}
 }
 
+void Tribes::add_worker_buildcost(const WorkerBuildcost& buildcost) {
+	postload_workers_buildcost_.push_back(buildcost);
+}
+
+void Tribes::add_worker_becomes(const WorkerBecomes& becomes) {
+	postload_workers_become_.push_back(becomes);
+}
+
 void Tribes::postload() {
+	// Some workers have other workers as build cost, so we postload those in order to perform the necessary checks.
+	for (const WorkerBuildcost& buildcost : postload_workers_buildcost_) {
+		if (!worker_exists(buildcost.worker)) {
+			throw GameDataError(
+			   "Trying to add a worker buildcost to non-existing worker '%s'", buildcost.worker.c_str());
+		}
+		if (!worker_exists(buildcost.needed_worker)) {
+			throw GameDataError(
+			   "The worker '%s' to be added as builcost to the worker '%s' does not exist", buildcost.needed_worker.c_str(), buildcost.worker.c_str());
+		}
+		workers_->get_mutable(safe_worker_index(buildcost.worker))->add_worker_to_buildcost(buildcost.needed_worker, buildcost.quantity);
+	}
+	postload_workers_buildcost_.clear();
+
+	// Likewise, more experienced workers might not have been available yet when a lower-level worker was loaded.
+	for (const WorkerBecomes& becomes : postload_workers_become_) {
+		if (!worker_exists(becomes.worker)) {
+			throw GameDataError(
+			   "Trying to add a worker enhancement to non-existing worker '%s'", becomes.worker.c_str());
+		}
+		if (!worker_exists(becomes.expert_worker)) {
+			throw GameDataError(
+			   "The worker '%s' to be added as enhancement to the worker '%s' does not exist", becomes.expert_worker.c_str(), becomes.worker.c_str());
+		}
+		workers_->get_mutable(safe_worker_index(becomes.worker))->set_becomes(becomes.expert_worker);
+	}
+	postload_workers_become_.clear();
+
+	// Add building info to wares here, since wares were loaded first.
 	for (DescriptionIndex i = 0; i < buildings_->size(); ++i) {
 		BuildingDescr& building_descr = *buildings_->get_mutable(i);
 

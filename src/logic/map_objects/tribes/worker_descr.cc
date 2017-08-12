@@ -38,12 +38,12 @@ namespace Widelands {
 WorkerDescr::WorkerDescr(const std::string& init_descname,
                          MapObjectType init_type,
                          const LuaTable& table,
-                         const EditorGameBase& egbase)
+                         EditorGameBase* egbase)
    : BobDescr(init_descname, init_type, MapObjectDescr::OwnerType::kTribe, table),
      buildable_(false),
      needed_experience_(INVALID_INDEX),
      becomes_(INVALID_INDEX),
-     egbase_(egbase) {
+     egbase_(*egbase) {
 	if (icon_filename().empty()) {
 		throw GameDataError("Worker %s has no menu icon", table.get_string("name").c_str());
 	}
@@ -60,17 +60,18 @@ WorkerDescr::WorkerDescr(const std::string& init_descname,
 					throw GameDataError(
 					   "a buildcost item of this ware type has already been defined: %s", key.c_str());
 				}
-				if (!tribes.ware_exists(tribes.ware_index(key)) &&
-				    !tribes.worker_exists(tribes.worker_index(key))) {
-					throw GameDataError("\"%s\" has not been defined as a ware/worker type (wrong "
-					                    "declaration order?)",
-					                    key.c_str());
-				}
-				int32_t value = items_table->get_int(key);
-				uint8_t const count = value;
-				if (count != value)
+				int32_t temp_quantity = items_table->get_int(key);
+				const uint8_t quantity = temp_quantity;
+				if (quantity != temp_quantity) {
 					throw GameDataError("count is out of range 1 .. 255");
-				buildcost_.insert(std::pair<std::string, uint8_t>(key, count));
+				}
+				if (tribes.ware_exists(tribes.ware_index(key)) ||
+					 tribes.worker_exists(tribes.worker_index(key))) {
+					buildcost_.insert(std::make_pair(key, quantity));
+				} else {
+					// The buildcost's worker wasn't loaded yet, so we'll try this again in postload.
+					egbase->mutable_tribes()->add_worker_buildcost({name(), key, quantity});
+				}
 			} catch (const WException& e) {
 				throw GameDataError("[buildcost] \"%s\": %s", key.c_str(), e.what());
 			}
@@ -91,7 +92,13 @@ WorkerDescr::WorkerDescr(const std::string& init_descname,
 
 	// Read what the worker can become and the needed experience
 	if (table.has_key("becomes")) {
-		becomes_ = egbase_.tribes().safe_worker_index(table.get_string("becomes"));
+		const std::string becomes = table.get_string("becomes");
+		if (egbase_.tribes().worker_exists(becomes)) {
+			set_becomes(becomes);
+		} else {
+			// The expert worker wasn't loaded yet, so we'll try this again in postload.
+			egbase->mutable_tribes()->add_worker_becomes({name(), becomes});
+		}
 		needed_experience_ = table.get_int("experience");
 	}
 
@@ -122,11 +129,19 @@ WorkerDescr::WorkerDescr(const std::string& init_descname,
 
 WorkerDescr::WorkerDescr(const std::string& init_descname,
                          const LuaTable& table,
-                         const EditorGameBase& egbase)
+                         EditorGameBase* egbase)
    : WorkerDescr(init_descname, MapObjectType::WORKER, table, egbase) {
 }
 
 WorkerDescr::~WorkerDescr() {
+}
+
+void WorkerDescr::add_worker_to_buildcost(const std::string& name, uint8_t quantity) {
+	buildcost_.insert(std::make_pair(name, quantity));
+}
+
+void WorkerDescr::set_becomes(const std::string& name) {
+	becomes_ = egbase_.tribes().safe_worker_index(name);
 }
 
 /**
