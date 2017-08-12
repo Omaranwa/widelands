@@ -17,27 +17,23 @@
 tribes = wl.Tribes()
 include "scripting/mapobjects.lua"
 
--- Helper function to check for file name endings
-function string.ends(haystack, needle)
-   return needle == '' or string.sub(haystack, -string.len(needle)) == needle
-end
 
 -- Load all init.lua files in the given table of directory names
 function load_directories(directories)
-   -- NOCOM remove print output when everything works
-   print("┃    LOADING: " .. directories[1])
+   -- Helper function to check for file name endings
+   function string.ends(haystack, needle)
+      return needle == '' or string.sub(haystack, -string.len(needle)) == needle
+   end
+
    while #directories > 0 do
       local filepath = directories[1]
       table.remove(directories, 1)
       if path.is_directory(filepath) then
-         local temp_dirs = path.list_directory(filepath)
-         for idx, temp_path in ipairs(temp_dirs) do
-            if path.is_directory(temp_path) then
-               print("┃      Directory: " .. temp_path)
-               table.insert(directories, temp_path)
-            elseif string.ends(temp_path , "init.lua") then
-               print("┃      File: " .. temp_path)
-               include(temp_path)
+         for idx, listed_path in ipairs(path.list_directory(filepath)) do
+            if path.is_directory(listed_path) then
+               table.insert(directories, listed_path)
+            elseif string.ends(listed_path , "init.lua") then
+               include(listed_path)
             end
          end
       end
