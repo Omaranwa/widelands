@@ -170,6 +170,20 @@ void Tribes::add_tribe(const LuaTable& table, const EditorGameBase& egbase) {
 	}
 }
 
+void Tribes::add_custom_building(const LuaTable& table) {
+	const std::string tribename = table.get_string("tribename");
+	if (Widelands::tribe_exists(tribename)) {
+		TribeDescr* descr = tribes_->get_mutable(tribe_index(tribename));
+		const std::string buildingname = table.get_string("buildingname");
+		descr->add_building(buildingname);
+		if (descr->get_building_descr(descr->building_index(buildingname))->type() == MapObjectType::TRAININGSITE) {
+			descr->update_trainingsites_proportions(buildingname);
+		}
+	} else {
+		throw GameDataError("The tribe '%s'' has no preload file.", tribename.c_str());
+	}
+}
+
 size_t Tribes::nrbuildings() const {
 	return buildings_->size();
 }

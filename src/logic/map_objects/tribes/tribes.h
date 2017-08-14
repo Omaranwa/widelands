@@ -103,6 +103,8 @@ public:
 	/// Adds a specific tribe's configuration.
 	void add_tribe(const LuaTable& table, const EditorGameBase& egbase);
 
+	void add_custom_building(const LuaTable& table);
+
 	size_t nrbuildings() const;
 	size_t nrtribes() const;
 	size_t nrwares() const;

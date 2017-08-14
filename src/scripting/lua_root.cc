@@ -560,6 +560,7 @@ const MethodType<LuaTribes> LuaTribes::Methods[] = {
    METHOD(LuaTribes, new_soldier_type),
    METHOD(LuaTribes, new_worker_type),
    METHOD(LuaTribes, new_tribe),
+	METHOD(LuaTribes, add_custom_building),
    {0, 0},
 };
 const PropertyType<LuaTribes> LuaTribes::Properties[] = {
@@ -895,6 +896,33 @@ int LuaTribes::new_tribe(lua_State* L) {
 	}
 	return 0;
 }
+
+
+/* RST
+	.. method:: add_custom_building{table}
+
+		Adds a custom building to the tribe, e.g. for use in a scenario.
+		The table has the following entries:
+		NOCOM document
+
+		:returns: :const:`0`
+*/
+int LuaTribes::add_custom_building(lua_State* L) {
+	if (lua_gettop(L) != 2) {
+		report_error(L, "Takes only one argument.");
+	}
+
+	try {
+		LuaTable table(L);  // Will pop the table eventually.
+		EditorGameBase& egbase = get_egbase(L);
+		egbase.mutable_tribes()->add_custom_building(table);
+		log("NOCOM added custom building: %s\n", table.get_string("buildingname").c_str());
+	} catch (std::exception& e) {
+		report_error(L, "%s", e.what());
+	}
+	return 0;
+}
+
 
 /*
  ==========================================================
