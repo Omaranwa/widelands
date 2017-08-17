@@ -507,14 +507,36 @@ void TribeDescr::update_trainingsites_proportions(const std::string& new_site) {
 			}
 		}
 	} else {
-		log("NOCOM we have a new training site: %s\n", new_site.c_str());
+		// Adjust percentages to include a custom scenario training site.
+		assert(!trainingsites().empty());
+
+		// Make sure that the new site gets a fair share.
+		BuildingDescr* newsite_descr = tribes_.get_mutable_building_descr(tribes_.safe_building_index(new_site));
+		if (newsite_descr->hints().trainingsites_max_percent() == 0) {
+			newsite_descr->set_hints_trainingsites_max_percent(100 / trainingsites().size());
+		}
+
+		// See what we have.
+		int total_percent = 0;
+		for (const DescriptionIndex& index : trainingsites_) {
+			const BuildingDescr* descr = tribes_.get_building_descr(index);
+			total_percent += descr->hints().trainingsites_max_percent();
+		}
+
+		// Subtract the surplus.
+		const int percent_to_subtract = std::ceil((total_percent - 100)  / trainingsites().size());
+		for (const DescriptionIndex& index : trainingsites_) {
+			BuildingDescr* descr = tribes_.get_mutable_building_descr(index);
+			if (descr->name() != newsite_descr->name()) {
+				descr->set_hints_trainingsites_max_percent(descr->hints().trainingsites_max_percent() - percent_to_subtract);
+			}
+			used_percent += descr->hints().trainingsites_max_percent();
+		}
 	}
-	/* NOCOM
 	if (used_percent < 100) {
 		throw GameDataError(
 		   "Final training sites proportions add up to < 100%%: %d", used_percent);
 	}
-	*/
 }
 
 /**
