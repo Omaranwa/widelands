@@ -156,12 +156,13 @@ BuildingDescr::BuildingDescr(const std::string& init_descname,
 void BuildingDescr::set_enhances_to(const std::string& name) {
 	enhancement_ = egbase_.tribes().safe_building_index(name);
 
-	//  Merge the enhancements workarea info into this building's
+	//  Merge the enhancement's workarea info into this building's
 	//  workarea info.
 	for (auto area : egbase_.tribes().get_building_descr(enhancement_)->workarea_info_) {
 		std::set<std::string>& strs = workarea_info_[area.first];
-		for (std::string str : area.second)
+		for (std::string str : area.second) {
 			strs.insert(str);
+		}
 	}
 }
 
