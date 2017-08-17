@@ -93,12 +93,12 @@ WorkerDescr::WorkerDescr(const std::string& init_descname,
 	// Read what the worker can become and the needed experience
 	if (table.has_key("becomes")) {
 		needed_experience_ = table.get_int("experience");
-		const std::string becomes = table.get_string("becomes");
-		if (egbase_.tribes().worker_exists(becomes)) {
-			set_becomes(becomes);
+		const std::string becomes_name = table.get_string("becomes");
+		if (egbase_.tribes().worker_exists(becomes_name)) {
+			set_becomes(becomes_name);
 		} else {
 			// The expert worker wasn't loaded yet, so we'll try this again in postload.
-			egbase->mutable_tribes()->add_mapobject_enhancement({MapObjectType::WORKER, name(), becomes});
+			egbase->mutable_tribes()->add_mapobject_enhancement({MapObjectType::WORKER, name(), becomes_name});
 		}
 	}
 
@@ -136,13 +136,13 @@ WorkerDescr::WorkerDescr(const std::string& init_descname,
 WorkerDescr::~WorkerDescr() {
 }
 
-void WorkerDescr::add_worker_to_buildcost(const std::string& name, uint8_t quantity) {
-	buildcost_.insert(std::make_pair(name, quantity));
+void WorkerDescr::add_worker_to_buildcost(const std::string& worker_name, uint8_t quantity) {
+	buildcost_.insert(std::make_pair(worker_name, quantity));
 }
 
-void WorkerDescr::set_becomes(const std::string& name) {
+void WorkerDescr::set_becomes(const std::string& becomes_name) {
 	assert(needed_experience_ > 0 && needed_experience_ != INVALID_INDEX);
-	becomes_ = egbase_.tribes().safe_worker_index(name);
+	becomes_ = egbase_.tribes().safe_worker_index(becomes_name);
 }
 
 /**
