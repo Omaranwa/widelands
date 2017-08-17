@@ -901,9 +901,15 @@ int LuaTribes::new_tribe(lua_State* L) {
 /* RST
 	.. method:: add_custom_building{table}
 
-		Adds a custom building to the tribe, e.g. for use in a scenario.
+		Adds a custom building to a tribe, e.g. for use in a scenario.
+		The building must already be known to the tribes.
 		The table has the following entries:
-		NOCOM document
+
+		**tribename**
+			*Mandatory*. The name of the tribe that this building will be added to.
+
+		**buildingname**
+			*Mandatory*. The name of the building to be added to the tribe.
 
 		:returns: :const:`0`
 */
@@ -916,7 +922,6 @@ int LuaTribes::add_custom_building(lua_State* L) {
 		LuaTable table(L);  // Will pop the table eventually.
 		EditorGameBase& egbase = get_egbase(L);
 		egbase.mutable_tribes()->add_custom_building(table);
-		log("NOCOM added custom building: %s\n", table.get_string("buildingname").c_str());
 	} catch (std::exception& e) {
 		report_error(L, "%s", e.what());
 	}
