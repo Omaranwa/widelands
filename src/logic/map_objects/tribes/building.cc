@@ -153,8 +153,8 @@ BuildingDescr::BuildingDescr(const std::string& init_descname,
 	}
 }
 
-void BuildingDescr::set_enhances_to(const std::string& name) {
-	enhancement_ = egbase_.tribes().safe_building_index(name);
+void BuildingDescr::set_enhances_to(const std::string& enhancement_name) {
+	enhancement_ = egbase_.tribes().safe_building_index(enhancement_name);
 
 	//  Merge the enhancement's workarea info into this building's
 	//  workarea info.
